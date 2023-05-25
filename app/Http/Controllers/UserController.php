@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -25,9 +26,17 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string'
-        ]);
+        try{
+            $validatedData = $request->validate([
+                'name' => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => $e->errors(),
+                'message' => 'Preencha todos os dados corretamente',
+                'status' => 401
+            ], 401);
+        }
 
         try {
             $user = User::create($validatedData);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ServiceOrder;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ServiceOrderController extends Controller
 {
@@ -25,14 +26,22 @@ class ServiceOrderController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'vehiclePlate' => 'required|string',
-            'entryDateTime' => 'required|date',
-            'exitDateTime' => 'required|date',
-            'priceType' => 'required',
-            'price' => 'required',
-            'userId' => 'required|exists:users,id'
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'vehiclePlate' => 'required|string',
+                'entryDateTime' => 'required|date',
+                'exitDateTime' => 'required|date',
+                'priceType' => 'required',
+                'price' => 'required',
+                'userId' => 'required|exists:users,id'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => $e->errors(),
+                'message' => 'Preencha todos os dados corretamente',
+                'status' => 401
+            ], 401);
+        }
 
         try {
             $serviceOrder = ServiceOrder::create($validatedData);
